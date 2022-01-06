@@ -1,0 +1,8 @@
+Debug/
+Release/
+Renderer3d/Debug/
+Renderer3d/Release/
+Renderer3d/include/glm-master/doc/
+Renderer3d/include/glm-master/cmake/
+Renderer3d/include/glm-master/util/
+.vs/
