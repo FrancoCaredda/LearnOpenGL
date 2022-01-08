@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Renderer3d\include\GLEW\include;$(SolutionDir)Renderer3d\include\GLFW\include\GLFW;$(SolutionDir)Renderer3d\Source;$(SolutionDir)Renderer3d\include\;$(SolutionDir)Renderer3d\include\glm-master;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Renderer3d\include\GLEW\include;$(SolutionDir)Renderer3d\include\GLFW\include\GLFW;$(SolutionDir)Renderer3d\Source;$(SolutionDir)Renderer3d\include\;$(SolutionDir)Renderer3d\include\glm-master;$(SolutionDir)Renderer3d\include\imgui-master;$(SolutionDir)Renderer3d\include\imgui-master\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +146,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\glm-master\glm\detail\glm.cpp" />
+    <ClCompile Include="include\imgui-master\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="include\imgui-master\backends\imgui_impl_opengl2.cpp" />
+    <ClCompile Include="include\imgui-master\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="include\imgui-master\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="include\imgui-master\imgui.cpp" />
+    <ClCompile Include="include\imgui-master\imgui_demo.cpp" />
+    <ClCompile Include="include\imgui-master\imgui_draw.cpp" />
+    <ClCompile Include="include\imgui-master\imgui_tables.cpp" />
+    <ClCompile Include="include\imgui-master\imgui_widgets.cpp" />
+    <ClCompile Include="include\imgui-master\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="include\stb_image\stb_image.cpp" />
     <ClCompile Include="Source\Shaders\Shader.cpp" />
     <ClCompile Include="Source\main.cpp" />
@@ -1296,6 +1306,19 @@
     <ClInclude Include="include\glm-master\glm\vec3.hpp" />
     <ClInclude Include="include\glm-master\glm\vec4.hpp" />
     <ClInclude Include="include\glm-master\glm\vector_relational.hpp" />
+    <ClInclude Include="include\imgui-master\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="include\imgui-master\backends\imgui_impl_opengl2.h" />
+    <ClInclude Include="include\imgui-master\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="include\imgui-master\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="include\imgui-master\backends\imgui_impl_win32.h" />
+    <ClInclude Include="include\imgui-master\imconfig.h" />
+    <ClInclude Include="include\imgui-master\imgui.h" />
+    <ClInclude Include="include\imgui-master\imgui_internal.h" />
+    <ClInclude Include="include\imgui-master\imstb_rectpack.h" />
+    <ClInclude Include="include\imgui-master\imstb_textedit.h" />
+    <ClInclude Include="include\imgui-master\imstb_truetype.h" />
+    <ClInclude Include="include\imgui-master\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="include\imgui-master\misc\single_file\imgui_single_file.h" />
     <ClInclude Include="include\stb_image\stb_image.h" />
     <ClInclude Include="Source\Log.h" />
     <ClInclude Include="Source\Shaders\Shader.h" />
