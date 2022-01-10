@@ -43,8 +43,6 @@ void Shader::Load(const std::string& fileName)
 
 	const char* sourceString = source.c_str();
 
-	std::cout << source << std::endl;
-
 	glShaderSource(m_Id, 1, &sourceString, nullptr);
 }
 
@@ -112,6 +110,17 @@ void ShaderProgram::SetFloat(const std::string& name, float value)
 	}
 
 	glUniform1f(m_Uniforms[name], value);
+}
+
+void ShaderProgram::SetImage(const std::string& name, int level)
+{
+	if (m_Uniforms.find(name) == m_Uniforms.end())
+	{
+		int uniform = glGetUniformLocation(m_Id, name.c_str());
+		m_Uniforms[name] = uniform;
+	}
+
+	glUniform1i(m_Uniforms[name], level);
 }
 
 void ShaderProgram::Attach(const Shader& shader)
