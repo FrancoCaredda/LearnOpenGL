@@ -174,8 +174,8 @@ int main(void)
 	lightVertexShader.Compile();
 	lightFragmentShader.Compile();
 
-	glm::vec3 lightPosition = { -1.0f, -1.0f, 2.0f };
-	glm::mat4 modelLight = glm::translate(glm::mat4(1.0f), lightPosition);
+	glm::vec4 lightPosition = { -1.0f, -1.0f, 2.0f, 1.0 };
+	glm::mat4 modelLight = glm::translate(glm::mat4(1.0f), glm::vec3(lightPosition));
 	modelLight = glm::scale(modelLight, { 0.5f, 0.5f, 0.5f });
 //modelLight = glm::rotate(modelLight, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
@@ -282,6 +282,13 @@ int main(void)
 
 	float shininess = 4;
 
+	int lightType = 1;
+	float constant = 1.0, linear = 0.09f, quadratic = 0.032f;
+
+	glm::vec3 spotlightDir(1.0f);
+	float cutoffAngle = 0.0f;
+	float outerCutoff = 0.0f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -294,33 +301,70 @@ int main(void)
 		previousTime += deltaTime;
 
 		ImGui::Begin("Properties");
-		ImGui::BeginChild("Lighting properties", {500, 50});
-		ImGui::DragFloat3("Light position", glm::value_ptr(lightPosition), 0.05, -6, 6);
-		ImGui::DragFloat3("Light color", glm::value_ptr(lightColor), 0.005, 0, 1);
+		ImGui::BeginChild("Lighting properties", {500, 200});
+		ImGui::DragFloat3("Light position", glm::value_ptr(lightPosition), 0.05, -55.0f, 55.0f);
+		ImGui::SliderFloat3("Light color", glm::value_ptr(lightColor), 0, 1);
+		ImGui::RadioButton("Directional Light", &lightType, 0);
+		ImGui::RadioButton("Standart Light", &lightType, 1);
+		ImGui::RadioButton("Pointlight", &lightType, 2);
+		ImGui::RadioButton("Spotlight", &lightType, 3);
+
+		if (lightType == 2)
+		{
+			ImGui::SliderFloat("Linear Coeficient", &linear, 0.0014f, 0.7f);
+			ImGui::SliderFloat("Quadratic Coeficient", &quadratic, 0.000007f, 1.8f);
+		}
+		else if (lightType == 3)
+		{
+			ImGui::SliderFloat3("Spotlight direction", glm::value_ptr(spotlightDir), -100.0f, 100.0f);
+			ImGui::SliderFloat("Cutoff angle", &cutoffAngle, 0.0f, 90);
+			ImGui::SliderFloat("Outer cutoff angle", &outerCutoff, 0.0f, 90);
+		}
+
 		ImGui::EndChild();
 		ImGui::BeginChild("Object properties", { 500, 50 });
-		ImGui::DragFloat("Object shininess", &shininess, 1, 4, 256);
+		ImGui::SliderFloat("Object shininess", &shininess, 4, 256);
 		ImGui::EndChild();
 		ImGui::End();
 
-		lightSource.Bind();
-		lightSourceVertexBuffer.Bind();
-		lightProgram.Bind();
-		modelLight = glm::translate(glm::mat4(1.0), lightPosition);
-		modelLight = glm::scale(modelLight, { 0.5f, 0.5f, 0.5f });
+		lightPosition.w = lightType;
 
-		lightProgram.SetMat4f("u_Model", modelLight);
-		lightProgram.SetVector3f("u_Color", lightColor);
+		if (lightType != 0)
+		{
+			lightSource.Bind();
+			lightSourceVertexBuffer.Bind();
+			lightProgram.Bind();
+			modelLight = glm::translate(glm::mat4(1.0), glm::vec3(lightPosition));
+			modelLight = glm::scale(modelLight, { 0.5f, 0.5f, 0.5f });
 
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+			lightProgram.SetMat4f("u_Model", modelLight);
+			lightProgram.SetVector3f("u_Color", lightColor);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		cubeVAO.Bind();
 		cubeVBO.Bind();
 		program.Bind();
-		program.SetVector3f("u_Light.position", lightPosition);
+
+		program.SetVector4f("u_Light.position", lightPosition);
 		program.SetVector3f("u_Light.ambient", lightColor);
 		program.SetVector3f("u_Light.diffuse", lightColor);
 		program.SetVector3f("u_Light.specular", lightColor);
+
+		if (lightType == 2)
+		{
+			program.SetFloat("u_Light.constant", constant);
+			program.SetFloat("u_Light.linear", linear);
+			program.SetFloat("u_Light.quadratic", quadratic);
+		}
+		else if (lightType == 3)
+		{
+			program.SetVector3f("u_Light.spotDirection", spotlightDir);
+			program.SetFloat("u_Light.spotCutOff", glm::cos(glm::radians(cutoffAngle)));
+			program.SetFloat("u_Light.outerCutOff", glm::cos(glm::radians(outerCutoff)));
+		}
+
 		program.SetFloat("u_Material.shininess", shininess);
 
 		model = glm::rotate(model, glm::radians(15.0f * deltaTime), glm::vec3(0.0f, 1.0f, 0.0f));

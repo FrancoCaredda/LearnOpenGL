@@ -7,7 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-
 #define BUFFER_SIZE 256
 
 Shader::Shader(GLenum type)
@@ -88,6 +87,17 @@ void ShaderProgram::SetVector3f(const std::string& name, const glm::vec3& vector
 	}
 
 	glUniform3fv(m_Uniforms[name], 1, glm::value_ptr(vector));
+}
+
+void ShaderProgram::SetVector4f(const std::string& name, const glm::vec4& vector)
+{
+	if (m_Uniforms.find(name) == m_Uniforms.end())
+	{
+		int uniform = glGetUniformLocation(m_Id, name.c_str());
+		m_Uniforms[name] = uniform;
+	}
+
+	glUniform4fv(m_Uniforms[name], 1, glm::value_ptr(vector));
 }
 
 void ShaderProgram::SetMat4f(const std::string& name, const glm::mat4& matrix)
