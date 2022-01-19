@@ -122,7 +122,7 @@ void ShaderProgram::SetFloat(const std::string& name, float value)
 	glUniform1f(m_Uniforms[name], value);
 }
 
-void ShaderProgram::SetImage(const std::string& name, int level)
+void ShaderProgram::SetInt(const std::string& name, int value)
 {
 	if (m_Uniforms.find(name) == m_Uniforms.end())
 	{
@@ -130,7 +130,7 @@ void ShaderProgram::SetImage(const std::string& name, int level)
 		m_Uniforms[name] = uniform;
 	}
 
-	glUniform1i(m_Uniforms[name], level);
+	glUniform1i(m_Uniforms[name], value);
 }
 
 void ShaderProgram::Attach(const Shader& shader)

@@ -75,8 +75,6 @@
     <None Include="include\GLEW\doc\install.html" />
     <None Include="include\GLEW\doc\log.html" />
     <None Include="include\GLEW\doc\wglew.html" />
-    <None Include="Shaders\VertexShader\rectangle.glsl" />
-    <None Include="Shaders\FragmentShader\rectangle.glsl" />
     <None Include="include\glm-master\doc\api\search\all_0.html" />
     <None Include="include\glm-master\doc\api\search\all_1.html" />
     <None Include="include\glm-master\doc\api\search\all_2.html" />
@@ -1192,6 +1190,8 @@
     </None>
     <None Include="Shaders\FragmentShader\lightSource.glsl" />
     <None Include="Shaders\VertexShader\lightSource.glsl" />
+    <None Include="Shaders\FragmentShader\main.glsl" />
+    <None Include="Shaders\VertexShader\main.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLEW\include\GL\eglew.h">

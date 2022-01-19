@@ -35,7 +35,7 @@ public:
 	void SetVector4f(const std::string& name, const glm::vec4& vector);
 	void SetMat4f(const std::string& name, const glm::mat4& matrix);
 	void SetFloat(const std::string& name, float value);
-	void SetImage(const std::string& name, int level);
+	void SetInt(const std::string& name, int value);
 
 	void Attach(const Shader& shader);
 	bool Link();

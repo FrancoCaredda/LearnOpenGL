@@ -1009,9 +1009,9 @@
     <None Include="include\glm-master\glm\gtx\vector_query.inl" />
     <None Include="include\glm-master\glm\gtx\wrap.inl" />
     <None Include="Shaders\FragmentShader\lightSource.glsl" />
-    <None Include="Shaders\FragmentShader\rectangle.glsl" />
+    <None Include="Shaders\FragmentShader\main.glsl" />
     <None Include="Shaders\VertexShader\lightSource.glsl" />
-    <None Include="Shaders\VertexShader\rectangle.glsl" />
+    <None Include="Shaders\VertexShader\main.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLEW\include\GL\eglew.h" />

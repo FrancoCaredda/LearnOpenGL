@@ -214,8 +214,8 @@ int main(void)
 	Shader cubeVertexShader(GL_VERTEX_SHADER);
 	Shader cubeFragmentShader(GL_FRAGMENT_SHADER);
 
-	cubeVertexShader.Load("Shaders/VertexShader/rectangle.glsl");
-	cubeFragmentShader.Load("Shaders/FragmentShader/rectangle.glsl");
+	cubeVertexShader.Load("Shaders/VertexShader/main.glsl");
+	cubeFragmentShader.Load("Shaders/FragmentShader/main.glsl");
 
 	cubeVertexShader.Compile();
 	cubeFragmentShader.Compile();
@@ -261,20 +261,15 @@ int main(void)
 
 	stbi_image_free(specularTextureData);
 
-	program.SetFloat("u_Material.shininess", 256);
-	program.SetVector3f("u_Light.position", lightPosition);
-	program.SetVector3f("u_Light.ambient", { 1.0f, 1.0f, 1.0f });
-	program.SetVector3f("u_Light.diffuse", { 1.0f, 1.0f, 1.0f });
-	program.SetVector3f("u_Light.specular", { 1.0f, 1.0f, 1.0f });
 	program.SetVector3f("u_CameraPosition", cameraPosition);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureId);
-	program.SetImage("u_Material.diffuse", 0);
+	program.SetInt("u_Material.Diffuse", 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, specularTextureId);
-	program.SetImage("u_Material.specular", 1);
+	program.SetInt("u_Material.Specular", 1);
 
 
 	float previousTime = 0.0f;
@@ -322,7 +317,7 @@ int main(void)
 		else if (lightType == 3)
 		{
 			ImGui::SliderFloat3("Spotlight direction", glm::value_ptr(spotlightDir), -100.0f, 100.0f);
-			ImGui::SliderFloat("Cutoff angle", &cutoffAngle, 0.0f, 90);
+			ImGui::SliderFloat("Inner cutoff angle", &cutoffAngle, 0.0f, 90);
 			ImGui::SliderFloat("Outer cutoff angle", &outerCutoff, 0.0f, 90);
 		}
 
@@ -333,8 +328,6 @@ int main(void)
 		ImGui::DragFloat3("Object position", glm::value_ptr(cubePosition), 0.05, -55.0f, 55.0f);
 		ImGui::EndChild();
 		ImGui::End();
-
-		lightPosition.w = lightType;
 
 		if (lightType != 0)
 		{
@@ -354,29 +347,46 @@ int main(void)
 		cubeVBO.Bind();
 		program.Bind();
 
-		program.SetVector4f("u_Light.position", lightPosition);
-		program.SetVector3f("u_Light.ambient", lightColor);
-		program.SetVector3f("u_Light.diffuse", lightColor);
-		program.SetVector3f("u_Light.specular", lightColor);
-
-		if (lightType == 2)
-		{
-			program.SetFloat("u_Light.constant", constant);
-			program.SetFloat("u_Light.linear", linear);
-			program.SetFloat("u_Light.quadratic", quadratic);
-		}
-		else if (lightType == 3)
-		{
-			program.SetVector3f("u_Light.spotDirection", spotlightDir);
-			program.SetFloat("u_Light.spotCutOff", glm::cos(glm::radians(cutoffAngle)));
-			program.SetFloat("u_Light.outerCutOff", glm::cos(glm::radians(outerCutoff)));
-		}
-
-		program.SetFloat("u_Material.shininess", shininess);
+		program.SetInt("u_LightType", lightType);
 
 		model = glm::translate(glm::mat4(1.0), cubePosition);
 		model = glm::rotate(model, degree, glm::vec3(0.0f, 1.0f, 0.0f));
 		program.SetMat4f("u_Model", model);
+
+		if (lightType == 0)
+		{
+			program.SetVector3f("u_DirectionLight.Direction", lightPosition);
+			program.SetVector3f("u_DirectionLight.Properties.Ambient", lightColor);
+			program.SetVector3f("u_DirectionLight.Properties.Diffuse", lightColor);
+			program.SetVector3f("u_DirectionLight.Properties.Specular", lightColor);
+		}
+		else if (lightType == 3)
+		{
+			program.SetVector3f("u_Spotlight.Position", lightPosition);
+			program.SetVector3f("u_Spotlight.Direction", lightPosition);
+			program.SetVector3f("u_Spotlight.Properties.Ambient", lightColor);
+			program.SetVector3f("u_Spotlight.Properties.Diffuse", lightColor);
+			program.SetVector3f("u_Spotlight.Properties.Specular", lightColor);
+			program.SetFloat("u_Spotlight.InnerRadius", glm::cos(glm::radians(cutoffAngle)));
+			program.SetFloat("u_Spotlight.OuterRadius", glm::cos(glm::radians(outerCutoff)));
+		}
+		else
+		{
+			program.SetVector3f("u_Pointlight.Position", lightPosition);
+			program.SetVector3f("u_Pointlight.Properties.Ambient", lightColor);
+			program.SetVector3f("u_Pointlight.Properties.Diffuse", lightColor);
+			program.SetVector3f("u_Pointlight.Properties.Specular", lightColor);
+		}
+
+
+		if (lightType == 2)
+		{
+			program.SetFloat("u_Pointlight.Constant", 1.0f);
+			program.SetFloat("u_Pointlight.Linear", linear);
+			program.SetFloat("u_Pointlight.Quadratic", quadratic);
+		}
+
+		program.SetFloat("u_Material.Shininess", shininess);
 
 		degree += glm::radians(15.0f * deltaTime);
 
