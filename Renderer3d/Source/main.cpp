@@ -46,6 +46,7 @@ int main(void)
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	const char* glslVersion = "#version 330";
 
@@ -219,7 +220,8 @@ int main(void)
 	cubeVertexShader.Compile();
 	cubeFragmentShader.Compile();
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), {-2.0f, 1.0f, 1.0f});
+	glm::vec3 cubePosition = { -2.0f, 1.0f, 1.0f };
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), cubePosition);
 	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	ShaderProgram program;
@@ -288,6 +290,7 @@ int main(void)
 	glm::vec3 spotlightDir(1.0f);
 	float cutoffAngle = 0.0f;
 	float outerCutoff = 0.0f;
+	float degree = glm::radians(15.0f * deltaTime);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -301,13 +304,15 @@ int main(void)
 		previousTime += deltaTime;
 
 		ImGui::Begin("Properties");
-		ImGui::BeginChild("Lighting properties", {500, 200});
+		ImGui::BeginChild("Lighting properties", {500, 250});
+		ImGui::Text("Lighting properties");
 		ImGui::DragFloat3("Light position", glm::value_ptr(lightPosition), 0.05, -55.0f, 55.0f);
 		ImGui::SliderFloat3("Light color", glm::value_ptr(lightColor), 0, 1);
 		ImGui::RadioButton("Directional Light", &lightType, 0);
 		ImGui::RadioButton("Standart Light", &lightType, 1);
 		ImGui::RadioButton("Pointlight", &lightType, 2);
 		ImGui::RadioButton("Spotlight", &lightType, 3);
+		ImGui::RadioButton("Depth", &lightType, 4);
 
 		if (lightType == 2)
 		{
@@ -322,8 +327,10 @@ int main(void)
 		}
 
 		ImGui::EndChild();
-		ImGui::BeginChild("Object properties", { 500, 50 });
+		ImGui::BeginChild("Object properties", { 500, 100 });
+		ImGui::Text("Object properties");
 		ImGui::SliderFloat("Object shininess", &shininess, 4, 256);
+		ImGui::DragFloat3("Object position", glm::value_ptr(cubePosition), 0.05, -55.0f, 55.0f);
 		ImGui::EndChild();
 		ImGui::End();
 
@@ -367,8 +374,11 @@ int main(void)
 
 		program.SetFloat("u_Material.shininess", shininess);
 
-		model = glm::rotate(model, glm::radians(15.0f * deltaTime), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(glm::mat4(1.0), cubePosition);
+		model = glm::rotate(model, degree, glm::vec3(0.0f, 1.0f, 0.0f));
 		program.SetMat4f("u_Model", model);
+
+		degree += glm::radians(15.0f * deltaTime);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
