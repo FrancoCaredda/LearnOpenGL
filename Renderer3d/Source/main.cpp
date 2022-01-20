@@ -46,7 +46,10 @@ int main(void)
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_BLEND);
 	glDepthFunc(GL_LESS);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	const char* glslVersion = "#version 330";
 
@@ -145,6 +148,14 @@ int main(void)
 		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
+	std::vector<float> planeVertexData = {
+		-0.5f, -0.5f, 0.0f,	 0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+		-0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+		 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f
+	};
 
 	glm::vec3 cameraPosition = { 0.0f, 0.0f, -10.0f };
 	glm::mat4 view = glm::translate(glm::mat4(1.0f), cameraPosition);
@@ -209,8 +220,6 @@ int main(void)
 	});
 	cubeVAO.EnableVertexAttibutes();
 
-	
-
 	Shader cubeVertexShader(GL_VERTEX_SHADER);
 	Shader cubeFragmentShader(GL_FRAGMENT_SHADER);
 
@@ -261,16 +270,42 @@ int main(void)
 
 	stbi_image_free(specularTextureData);
 
+	// transparent_window.png
+
+	////////////////////////WINDOW///////////////////////////////////////////////////////////////////
+
+
+	VertexBuffer windowBuffer(GL_STATIC_DRAW);
+	windowBuffer.Bind();
+	windowBuffer.Allocate(planeVertexData);
+
+	uint8_t* windowTextureData = stbi_load("Texture/transparent_window.png", &x, &y, &channels, 0);
+
+	uint32_t windowTexture;
+	glGenTextures(1, &windowTexture);
+	glBindTexture(GL_TEXTURE_2D, windowTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, windowTextureData);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(windowTextureData);
+
 	program.SetVector3f("u_CameraPosition", cameraPosition);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureId);
-	program.SetInt("u_Material.Diffuse", 0);
+	Shader windowVertexShader(GL_VERTEX_SHADER);
+	Shader windowFragmentShader(GL_FRAGMENT_SHADER);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, specularTextureId);
-	program.SetInt("u_Material.Specular", 1);
+	windowVertexShader.Load("Shaders/VertexShader/transparent.glsl");
+	windowFragmentShader.Load("Shaders/FragmentShader/transparent.glsl");
 
+	windowVertexShader.Compile();
+	windowFragmentShader.Compile();
+
+	ShaderProgram transparentProgram;
+	transparentProgram.Attach(windowVertexShader);
+	transparentProgram.Attach(windowFragmentShader);
+	transparentProgram.Link();
 
 	float previousTime = 0.0f;
 	float deltaTime = 0.0f;
@@ -287,9 +322,12 @@ int main(void)
 	float outerCutoff = 0.0f;
 	float degree = glm::radians(15.0f * deltaTime);
 
+	glm::vec3 windowPosition = { -1.0f, -1.0f, 2.0f };
+	glm::mat4 windowModel(1.0);
+
 	while (!glfwWindowShouldClose(window))
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -386,11 +424,35 @@ int main(void)
 			program.SetFloat("u_Pointlight.Quadratic", quadratic);
 		}
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		program.SetInt("u_Material.Diffuse", 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularTextureId);
+		program.SetInt("u_Material.Specular", 1);
+
 		program.SetFloat("u_Material.Shininess", shininess);
 
 		degree += glm::radians(15.0f * deltaTime);
-
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		windowBuffer.Bind();
+		transparentProgram.Bind();
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, windowTexture);
+
+		transparentProgram.SetInt("u_Texture", 2);
+
+		windowModel = glm::translate(glm::mat4(1.0), (windowPosition));
+		windowModel = glm::rotate(windowModel, glm::radians(30.0f), glm::vec3(0.0, 1.0, 0.0));
+		transparentProgram.SetMat4f("u_Model", windowModel);
+		transparentProgram.SetMat4f("u_View", view);
+		transparentProgram.SetMat4f("u_Projection", projection);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

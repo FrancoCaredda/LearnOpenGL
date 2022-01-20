@@ -1192,6 +1192,8 @@
     <None Include="Shaders\VertexShader\lightSource.glsl" />
     <None Include="Shaders\FragmentShader\main.glsl" />
     <None Include="Shaders\VertexShader\main.glsl" />
+    <None Include="Shaders\VertexShader\transparent.glsl" />
+    <None Include="Shaders\FragmentShader\transparent.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\GLEW\include\GL\eglew.h">
