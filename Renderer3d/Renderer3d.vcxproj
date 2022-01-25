@@ -1010,9 +1010,11 @@
     <None Include="include\glm-master\glm\gtx\wrap.inl" />
     <None Include="Shaders\FragmentShader\lightSource.glsl" />
     <None Include="Shaders\FragmentShader\main.glsl" />
+    <None Include="Shaders\FragmentShader\skybox.glsl" />
     <None Include="Shaders\FragmentShader\transparent.glsl" />
     <None Include="Shaders\VertexShader\lightSource.glsl" />
     <None Include="Shaders\VertexShader\main.glsl" />
+    <None Include="Shaders\VertexShader\skybox.glsl" />
     <None Include="Shaders\VertexShader\transparent.glsl" />
   </ItemGroup>
   <ItemGroup>

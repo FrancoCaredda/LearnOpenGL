@@ -41,7 +41,7 @@ void Shader::Load(const std::string& fileName)
 	}
 
 	const char* sourceString = source.c_str();
-
+	std::cout << sourceString << std::endl << std::endl;
 	glShaderSource(m_Id, 1, &sourceString, nullptr);
 }
 
