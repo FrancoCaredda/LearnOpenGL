@@ -432,12 +432,15 @@ int main(void)
 	float shininess = 4;
 
 	int lightType = 1;
+	int materialType = 0;
 	float constant = 1.0, linear = 0.09f, quadratic = 0.032f;
 
 	glm::vec3 spotlightDir(1.0f);
 	float cutoffAngle = 0.0f;
 	float outerCutoff = 0.0f;
 	float degree = glm::radians(15.0f * deltaTime);
+
+	int rotate = 1;
 
 	glm::vec3 windowPosition = { -1.0f, -1.0f, 2.0f };
 	glm::mat4 windowModel(1.0);
@@ -477,10 +480,15 @@ int main(void)
 		}
 
 		ImGui::EndChild();
-		ImGui::BeginChild("Object properties", { 500, 100 });
+		ImGui::BeginChild("Object properties", { 500, 250 });
 		ImGui::Text("Object properties");
 		ImGui::SliderFloat("Object shininess", &shininess, 4, 256);
 		ImGui::DragFloat3("Object position", glm::value_ptr(cubePosition), 0.05, -55.0f, 55.0f);
+		ImGui::RadioButton("Rotate", &rotate, 1);
+		ImGui::RadioButton("Stay", &rotate, 0);
+		ImGui::RadioButton("Diffuse material", &materialType, 0);
+		ImGui::RadioButton("Reflective material", &materialType, 1);
+		ImGui::RadioButton("Refractive material", &materialType, 2);
 		ImGui::EndChild();
 		ImGui::End();
 
@@ -519,9 +527,13 @@ int main(void)
 		program.Bind();
 
 		program.SetInt("u_LightType", lightType);
+		program.SetInt("u_Skybox", 4);
+		program.SetInt("u_MaterialType", materialType);
 
 		model = glm::translate(glm::mat4(1.0), cubePosition);
-		model = glm::rotate(model, degree, glm::vec3(0.0f, 1.0f, 0.0f));
+		if (rotate)
+			model = glm::rotate(model, degree, glm::vec3(0.0f, 1.0f, 0.0f));
+		
 		program.SetMat4f("u_Model", model);
 
 		if (lightType == 0)
@@ -566,8 +578,10 @@ int main(void)
 		program.SetInt("u_Material.Specular", 1);
 
 		program.SetFloat("u_Material.Shininess", shininess);
-
-		degree += glm::radians(15.0f * deltaTime);
+		
+		if (rotate)
+			degree += glm::radians(15.0f * deltaTime);
+		
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		windowBuffer.Bind();

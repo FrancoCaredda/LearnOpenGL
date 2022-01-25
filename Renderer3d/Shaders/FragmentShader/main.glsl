@@ -12,6 +12,10 @@ out vec4 FragColor;
 #define SPOT_LIGHT 3	
 #define DEPTH_TEST 4
 
+#define DIFFUSE_MATERIAL 0
+#define REFLECTIVE_MATERIAL 1
+#define REFRACTIVE_MATERIAL 2
+
 struct Light
 {
 	vec3 Ambient;
@@ -61,8 +65,10 @@ uniform Spotlight u_Spotlight;
 uniform Material u_Material;
 
 uniform int u_LightType;
+uniform int u_MaterialType;
 
 uniform vec3 u_CameraPosition;
+uniform samplerCube u_Skybox;
 
 vec3 CalculateAmbient(float strength, Material material, Light light)
 {
@@ -112,35 +118,52 @@ void main()
 	{
 		vec3 direction;
 		vec3 normal = normalize(Normal);
-	
-		if (u_LightType == SPOT_LIGHT)
-			direction = normalize(u_Spotlight.Position - FragmentPosition);
-		else
-			direction = normalize(u_Pointlight.Position - FragmentPosition);
 
-		vec3 ambient = CalculateAmbient(0.1, u_Material, u_Pointlight.Properties);
-		vec3 diffuse;
-		vec3 specular;
-
-		if (u_LightType == DIRECTIONAL_LIGHT)
+		if (u_MaterialType == DIFFUSE_MATERIAL)
 		{
-			vec3 sunlightDirection = normalize(u_DirectionLight.Direction);
+			if (u_LightType == SPOT_LIGHT)
+				direction = normalize(u_Spotlight.Position - FragmentPosition);
+			else
+				direction = normalize(u_Pointlight.Position - FragmentPosition);
 
-			diffuse = CalculateDiffuse(sunlightDirection, normal, u_Material, u_DirectionLight.Properties);
-			specular = CalculateSpecular(sunlightDirection, normal, u_Material, u_DirectionLight.Properties);
+			vec3 ambient = CalculateAmbient(0.1, u_Material, u_Pointlight.Properties);
+			vec3 diffuse;
+			vec3 specular;
+
+			if (u_LightType == DIRECTIONAL_LIGHT)
+			{
+				vec3 sunlightDirection = normalize(u_DirectionLight.Direction);
+
+				diffuse = CalculateDiffuse(sunlightDirection, normal, u_Material, u_DirectionLight.Properties);
+				specular = CalculateSpecular(sunlightDirection, normal, u_Material, u_DirectionLight.Properties);
+			}
+			else
+			{
+				diffuse = CalculateDiffuse(direction, normal, u_Material, u_Pointlight.Properties);
+				specular = CalculateSpecular(direction, normal, u_Material, u_Pointlight.Properties);
+			}
+
+			if (u_LightType == POINT_LIGHT)
+				FragColor = vec4(CalculatePointLight(ambient, diffuse, specular, u_Pointlight), 1.0);
+			else if (u_LightType == SPOT_LIGHT)
+				FragColor = vec4(CalculateSpotlight(ambient, diffuse, specular, direction, u_Spotlight), 1.0);
+			else
+				FragColor = vec4(ambient + diffuse + specular, 1.0);
 		}
-		else
+		else if (u_MaterialType == REFLECTIVE_MATERIAL)
 		{
-			diffuse = CalculateDiffuse(direction, normal, u_Material, u_Pointlight.Properties);
-			specular = CalculateSpecular(direction, normal, u_Material, u_Pointlight.Properties);
-		}
+			direction = normalize(FragmentPosition - u_CameraPosition);
+			vec3 reflectedDirection = reflect(direction, normal);
 
-		if (u_LightType == POINT_LIGHT)
-			FragColor = vec4(CalculatePointLight(ambient, diffuse, specular, u_Pointlight), 1.0);
-		else if (u_LightType == SPOT_LIGHT)
-			FragColor = vec4(CalculateSpotlight(ambient, diffuse, specular, direction, u_Spotlight), 1.0);
-		else
-			FragColor = vec4(ambient + diffuse + specular, 1.0);
+			FragColor = texture(u_Skybox, reflectedDirection);
+		}
+		else if (u_MaterialType == REFRACTIVE_MATERIAL)
+		{
+			direction = normalize(FragmentPosition - u_CameraPosition);
+			vec3 refractedDirection = refract(direction, normal, 1.0 / 1.52);
+
+			FragColor = vec4(texture(u_Skybox, refractedDirection).rgb, 1.0);
+		}
 	}
 	else
 	{
